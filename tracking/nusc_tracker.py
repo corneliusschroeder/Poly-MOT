@@ -184,7 +184,9 @@ class Tracker:
             dict_det = {
                 'nusc_box': data_info['box_dets'][det_idx],
                 'np_array': data_info['np_dets'][det_idx],
+                'uncertainties': data_info['uncertainties'][det_idx] if data_info['has_uncertainties'] else np.zeros((0, 0)),
                 'has_velo': data_info['has_velo'],
+                'has_uncertainties': data_info['has_uncertainties'],
                 'seq_id': data_info['seq_id']
             }
             if self.is_debug: assert tra_id not in self.dead_tras

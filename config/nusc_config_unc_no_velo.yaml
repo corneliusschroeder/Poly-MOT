@@ -3,7 +3,7 @@ basic:
   has_velo: False       # whether detector has velo info
   LiDAR_interval: 0.5  # the interval between two adjacent frames of the LiDAR scan, NuScenes: 2HZ
   CLASS_NUM: 7         # number of tracking category, NuScenes: 7
-  has_uncertainties: False
+  has_uncertainties: ['center', 'yaw'] # ['center', 'velocity', 'yaw']
 
   # CLASS_LABEL: {'bicycle': 0, 
   #               'bus': 1, 
@@ -35,7 +35,7 @@ motion_model:
   # model: {1: 'CTRA', 0: 'BICYCLE', 2: 'CTRA', 3: 'BICYCLE', 4: 'CTRA', 5: 'CTRA', 6: 'CTRA'}
   filter: {1: 'ExtendKalmanFilter', 0: 'ExtendKalmanFilter', 2: 'ExtendKalmanFilter', 3: 'ExtendKalmanFilter', 4: 'ExtendKalmanFilter', 5: 'LinearKalmanFilter', 6: 'ExtendKalmanFilter'}
   model: {1: 'CTRA', 0: 'BICYCLE', 2: 'CTRA', 3: 'BICYCLE', 4: 'CTRA', 5: 'CA', 6: 'CTRA'}
-  heteroscedastic_R: {1: False, 0: False, 2: False, 3: False, 4: False, 5: False, 6: False}
+  heteroscedastic_R: {1: True, 0: True, 2: True, 3: True, 4: True, 5: True, 6: True}
 
 life_cycle:
   max_age: {1: 10, 0: 10, 2: 15, 3: 20, 4: 10, 5: 10, 6: 20}

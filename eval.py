@@ -10,11 +10,11 @@ warnings.filterwarnings("ignore", category=FutureWarning, message=".*The frame.a
 
 parser = argparse.ArgumentParser()
 localtime = ''.join(time.asctime(time.localtime(time.time())).split(' '))
-parser.add_argument('--nusc_path', type=str, default='/workspaces/Poly-MOT-2/dataset/nuscenes')
+parser.add_argument('--nusc_path', type=str, default='/workspaces/Poly-MOT/dataset/nuscenes')
 parser.add_argument('--result_path', type=str, default='result/' + localtime)
 parser.add_argument('--eval_path', type=str, default='eval_result2/')
 parser.add_argument('--eval_split', type=str, choices=['train', 'val'], default='val')
-# args = parser.parse_args()
+
 
 def eval(result_path, eval_path, nusc_path, eval_split):
     warnings.filterwarnings("ignore", category=FutureWarning, module="pandas")
@@ -35,6 +35,7 @@ def eval(result_path, eval_path, nusc_path, eval_split):
 
 
 if __name__ == "__main__":
+    args = parser.parse_args()
     os.makedirs(args.eval_path, exist_ok=True)
     if os.path.isdir(args.result_path):
         result_path = os.path.join(args.result_path, 'results.json')

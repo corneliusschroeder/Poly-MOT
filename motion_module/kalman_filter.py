@@ -20,6 +20,8 @@ class KalmanFilter:
         self.initstamp = self.timestamp = timestamp
         self.tracking_id, self.class_label = track_id, det_infos['np_array'][-1]
         self.model = config['motion_model']['model'][self.class_label]
+        self.hetero_R = config['motion_model']['heteroscedastic_R'][self.class_label]
+        self.uncertainties = config['basic']['has_uncertainties']
         self.dt, self.has_velo = config['basic']['LiDAR_interval'], config['basic']['has_velo']
         # init FrameObject for each frame
         self.state, self.frame_objects = None, {}
@@ -64,7 +66,7 @@ class KalmanFilter:
         
         mea_attr = ('center', 'wlh', 'velocity', 'yaw') if self.has_velo else ('center', 'wlh', 'yaw')
         list_det = concat_box_attr(det['nusc_box'], *mea_attr)
-        if self.has_velo: list_det.pop(8)
+        if self.has_velo: list_det.pop(8) # delete v_z
         
         # only for debug, delete on the release version
         # ensure the measure yaw goes around [0, 0, 1]
@@ -154,7 +156,10 @@ class LinearKalmanFilter(KalmanFilter):
         self.P = self.model.getInitCovP(self.class_label)
         
         # state to measurement transition
-        self.R = self.model.getMeaNoiseR()
+        if self.hetero_R:
+            self.R = self.model.getHeteroMeaNoiseR(det_infos, self.uncertainties)
+        else:
+            self.R = self.model.getMeaNoiseR()
         self.H = self.model.getMeaStateH()
 
         # get different data format tracklet's state
@@ -188,6 +193,10 @@ class LinearKalmanFilter(KalmanFilter):
         meas_info = self.getMeasureInfo(det)
         _res = meas_info - self.H * self.state
         self.model.warpResYawToPi(_res)
+
+        if self.hetero_R:
+            self.R = self.model.getHeteroMeaNoiseR(det, self.uncertainties)
+
         _S = self.H * self.P * self.H.T + self.R
         _KF_GAIN = self.P * self.H.T * _S.I
         
@@ -218,9 +227,12 @@ class ExtendKalmanFilter(KalmanFilter):
         self.SD = self.model.getStateDim()
         self.P = self.model.getInitCovP(self.class_label)
         
-        # set noise matrix(fixed)
+        # set noise matrix
         self.Q = self.model.getProcessNoiseQ()
-        self.R = self.model.getMeaNoiseR()
+        if self.hetero_R:
+            self.R = self.model.getHeteroMeaNoiseR(det_infos, self.uncertainties)
+        else:
+            self.R = self.model.getMeaNoiseR()
 
         # get different data format tracklet's state
         self.state = self.model.getInitState(det_infos)
@@ -263,6 +275,16 @@ class ExtendKalmanFilter(KalmanFilter):
         # get jacobian matrix H using the predict state
         self.H = self.model.getMeaStateH(self.state)
         
+        if self.hetero_R:
+            self.R = self.model.getHeteroMeaNoiseR(det, self.uncertainties)
+
+        # print("HETERO R:")
+        # print(self.R)
+        # print("CONST R")
+        # print(self.model.getMeaNoiseR())
+        # print(self.model)
+        # print('velo: ', self.has_velo)
+        # print('-----------------------------')
         # obtain KF gain and update state and errorcov
         _S = self.H * self.P * self.H.T + self.R
         _KF_GAIN = self.P * self.H.T * _S.I
