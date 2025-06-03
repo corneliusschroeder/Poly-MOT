@@ -5,8 +5,8 @@ Information for each frame of the trajectory.
 class FrameObject:
     def __init__(self) -> None:
         # output infos
-        self.update_bms, self.update_infos, self.update_box =  None, None, None
-        self.predict_bms, self.predict_infos, self.predict_box = None, None, None
+        self.update_bms, self.update_infos, self.update_box, self.update_cov =  None, None, None, None
+        self.predict_bms, self.predict_infos, self.predict_box, self.predict_cov = None, None, None, None
         
         # infos for state transition
         self.update_state, self.predict_state = None, None

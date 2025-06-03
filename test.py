@@ -49,6 +49,9 @@ def main(result_path, token, process, nusc_loader):
         if process > 1 and frame_data['seq_id'] % process != token:
             continue
         sample_token = frame_data['sample_token']
+        print('xxxxxxxxxxxxxxxxxxxxxxxxx')
+        print('Frame Data\n',  frame_data)
+
         # track each sequence
         nusc_tracker.tracking(frame_data)
         """
@@ -62,7 +65,9 @@ def main(result_path, token, process, nusc_loader):
         # output process
         sample_results = []
         if 'no_val_track_result' not in frame_data:
+            print('\nTracked Objects:')
             for predict_box in frame_data['box_track_res']:
+                
                 box_result = {
                     "sample_token": sample_token,
                     "translation": [float(predict_box.center[0]), float(predict_box.center[1]),
@@ -71,17 +76,22 @@ def main(result_path, token, process, nusc_loader):
                     "rotation": [float(predict_box.orientation[0]), float(predict_box.orientation[1]),
                                  float(predict_box.orientation[2]), float(predict_box.orientation[3])],
                     "velocity": [float(predict_box.velocity[0]), float(predict_box.velocity[1])],
+                    "covariance": predict_box.covariance.tolist(), # Kalman filter uncertainty estimate
+                    "detection_uncertainty": predict_box.detection_uncertainty,
                     "tracking_id": str(predict_box.tracking_id),
                     "tracking_name": predict_box.name,
                     "tracking_score": predict_box.score,
                 }
                 sample_results.append(box_result.copy())
+                print(box_result)
 
         # add to the output file
         if sample_token in result["results"]:
             result["results"][sample_token] = result["results"][sample_token] + sample_results
         else:
             result["results"][sample_token] = sample_results
+
+        
 
     # sort track result by the tracking score
     for sample_token in result["results"].keys():
@@ -162,4 +172,4 @@ if __name__ == "__main__":
         result_path = os.path.join(args.result_path, 'results.json')
     else:
         result_path = args.result_path
-    eval(result_path, args.eval_path, args.nusc_path, args.eval_split)
+    # eval(result_path, args.eval_path, args.nusc_path, args.eval_split)

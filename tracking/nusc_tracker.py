@@ -176,7 +176,7 @@ class Tracker:
         """
         tracking_ids = tracking_ids.tolist()
         assert len(tracking_ids) == self.det_infos['det_num']
-        np_res, box_res, bm_res = [], [], []
+        np_res, box_res, bm_res, cov_res = [], [], [], []
         new_tras, ten_tras, act_tras = {}, {}, {}
         
         # iterative detections, use measurement(dets) to correct tracklet
@@ -218,10 +218,12 @@ class Tracker:
                     np_res.append(update_object.update_infos)
                     box_res.append(update_object.update_box)
                     bm_res.append(update_object.update_bms)
+                    cov_res.append(update_object.update_cov)
                 elif tra.life_management.time_since_update <= self.punish_num:
                     np_res.append(update_object.predict_infos)
                     box_res.append(update_object.predict_box)
                     bm_res.append(update_object.predict_bms)
+                    cov_res.append(update_object.predict_cov)
             elif tra.life_management.state == 'tentative':
                 ten_tras[tra_id] = tra
             elif tra.life_management.state == 'dead':
