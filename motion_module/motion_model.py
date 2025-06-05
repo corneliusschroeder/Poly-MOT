@@ -72,6 +72,14 @@ class ABC_MODEL(abc.ABC):
             np.mat: measure noise matrix(fix)
         """
         pass
+
+    @abc.abstractmethod
+    def getHeteroMeaNoiseR(self, det_infos: dict, uncertainties: list) -> np.mat:
+        """get heteroscedastic measurement noise matrix from the object detector.
+        Returns:
+            np.mat: measure noise matrix(fix)
+        """
+        pass
     
     @abc.abstractmethod
     def getMeaStateH(self) -> np.mat:
@@ -149,6 +157,39 @@ class CA(ABC_MODEL):
         """set measure noise(fix)
         """
         return np.mat(np.eye(self.MD)) * 0.001
+    
+    def getHeteroMeaNoiseR(self, det_infos, uncertainties) -> np.mat:
+        """set heteroscedastic measurement noise
+        """
+        # uncertainty measurement vector: [x_pos, y_pos, z_pos, w_bbox, l_bbox, h_bbox, yaw, vel_x, vel_y]
+        # -> Measure vector: [x, y, z, w, l, h, (vx, vy, optional), ry]
+        pos_unc = det_infos['uncertainties'][:3]
+        yaw_unc = det_infos['uncertainties'][6]
+        vel_unc = det_infos['uncertainties'][7:]
+        box_unc = det_infos['uncertainties'][3:6]
+
+        unc_vector = []
+        if 'center' in uncertainties:
+            unc_vector.extend(pos_unc)
+        else:
+            unc_vector.extend([0, 0, 0])
+        if 'box' in uncertainties:
+            unc_vector.extend(box_unc)
+        else:
+            unc_vector.extend([0, 0, 0])
+        if 'velocity' in uncertainties and self.has_velo:
+            unc_vector.extend(vel_unc)
+        elif self.has_velo:
+            unc_vector.extend([0, 0])
+        if 'yaw' in uncertainties: 
+            unc_vector.extend([yaw_unc])
+        else:
+            unc_vector.extend([0])
+        
+        # replace all 0s with the standard value of this model
+        unc_vector = [0.001 if i == 0 else i for i in unc_vector]
+        
+        return np.mat(np.diag(unc_vector))
     
     def getTransitionF(self) -> np.mat:
         """obtain matrix in the motion_module/script/Linear_kinect_jacobian.ipynb
@@ -276,6 +317,39 @@ class CV(ABC_MODEL):
         """set measure noise(fix)
         """
         return np.mat(np.eye(self.MD)) * 0.001
+    
+    def getHeteroMeaNoiseR(self, det_infos, uncertainties) -> np.mat:
+        """set heteroscedastic measurement noise
+        """
+        # uncertainty measurement vector: [x_pos, y_pos, z_pos, w_bbox, l_bbox, h_bbox, yaw, vel_x, vel_y]
+        # -> Measure vector: [x, y, z, w, l, h, (vx, vy, optional), ry]
+        pos_unc = det_infos['uncertainties'][:3]
+        yaw_unc = det_infos['uncertainties'][6]
+        vel_unc = det_infos['uncertainties'][7:]
+        box_unc = det_infos['uncertainties'][3:6]
+
+        unc_vector = []
+        if 'center' in uncertainties:
+            unc_vector.extend(pos_unc)
+        else:
+            unc_vector.extend([0, 0, 0])
+        if 'box' in uncertainties:
+            unc_vector.extend(box_unc)
+        else:
+            unc_vector.extend([0, 0, 0])
+        if 'velocity' in uncertainties and self.has_velo:
+            unc_vector.extend(vel_unc)
+        elif self.has_velo:
+            unc_vector.extend([0, 0])
+        if 'yaw' in uncertainties: 
+            unc_vector.extend([yaw_unc])
+        else:
+            unc_vector.extend([0])
+        
+        # replace all 0s with the standard value of this model
+        unc_vector = [0.001 if i == 0 else i for i in unc_vector]
+
+        return np.mat(np.diag(unc_vector))
 
     def getTransitionF(self) -> np.mat:
         """obtain matrix in the motion_module/script/CV_kinect_jacobian.ipynb
@@ -408,6 +482,39 @@ class CTRA(ABC_MODEL):
         """set measure noise(fix)
         """
         return np.mat(np.eye(self.MD)) * 1
+    
+    def getHeteroMeaNoiseR(self, det_infos, uncertainties) -> np.mat:
+        """set heteroscedastic measurement noise
+        """
+        # uncertainty measurement vector: [x_pos, y_pos, z_pos, w_bbox, l_bbox, h_bbox, yaw, vel_x, vel_y]
+        # -> Measure vector: [x, y, z, w, l, h, (vx, vy, optional), ry]
+        pos_unc = det_infos['uncertainties'][:3]
+        yaw_unc = det_infos['uncertainties'][6]
+        vel_unc = det_infos['uncertainties'][7:]
+        box_unc = det_infos['uncertainties'][3:6]
+
+        unc_vector = []
+        if 'center' in uncertainties:
+            unc_vector.extend(pos_unc)
+        else:
+            unc_vector.extend([0, 0, 0])
+        if 'box' in uncertainties:
+            unc_vector.extend(box_unc)
+        else:
+            unc_vector.extend([0, 0, 0])
+        if 'velocity' in uncertainties and self.has_velo:
+            unc_vector.extend(vel_unc)
+        elif self.has_velo:
+            unc_vector.extend([0, 0])
+        if 'yaw' in uncertainties: 
+            unc_vector.extend([yaw_unc])
+        else:
+            unc_vector.extend([0])
+        
+        # replace all 0s with the standard value of this model
+        unc_vector = [1 if i == 0 else i for i in unc_vector]
+
+        return np.mat(np.diag(unc_vector))
     
     def stateTransition(self, state: np.mat) -> np.mat:
         """state transition, 
@@ -632,6 +739,39 @@ class CTRV(ABC_MODEL):
         """set measure noise(fix)
         """
         return np.mat(np.eye(self.MD)) * 1
+    
+    def getHeteroMeaNoiseR(self, det_infos, uncertainties) -> np.mat:
+        """set heteroscedastic measurement noise
+        """
+        # uncertainty measurement vector: [x_pos, y_pos, z_pos, w_bbox, l_bbox, h_bbox, yaw, vel_x, vel_y]
+        # -> Measure vector: [x, y, z, w, l, h, (vx, vy, optional), ry]
+        pos_unc = det_infos['uncertainties'][:3]
+        yaw_unc = det_infos['uncertainties'][6]
+        vel_unc = det_infos['uncertainties'][7:]
+        box_unc = det_infos['uncertainties'][3:6]
+
+        unc_vector = []
+        if 'center' in uncertainties:
+            unc_vector.extend(pos_unc)
+        else:
+            unc_vector.extend([0, 0, 0])
+        if 'box' in uncertainties:
+            unc_vector.extend(box_unc)
+        else:
+            unc_vector.extend([0, 0, 0])
+        if 'velocity' in uncertainties and self.has_velo:
+            unc_vector.extend(vel_unc)
+        elif self.has_velo:
+            unc_vector.extend([0, 0])
+        if 'yaw' in uncertainties: 
+            unc_vector.extend([yaw_unc])
+        else:
+            unc_vector.extend([0])
+        
+        # replace all 0s with the standard value of this model
+        unc_vector = [1 if i == 0 else i for i in unc_vector]
+
+        return np.mat(np.diag(unc_vector))
 
     def stateTransition(self, state: np.mat) -> np.mat:
         """state transition,
@@ -874,6 +1014,39 @@ class BICYCLE(ABC_MODEL):
         """set measure noise(fix)
         """
         return np.mat(np.eye(self.MD)) * 1
+    
+    def getHeteroMeaNoiseR(self, det_infos, uncertainties) -> np.mat:
+        """set heteroscedastic measurement noise
+        """
+        # uncertainty measurement vector: [x_pos, y_pos, z_pos, w_bbox, l_bbox, h_bbox, yaw, vel_x, vel_y]
+        # -> Measure vector: [x, y, z, w, l, h, (vx, vy, optional), ry]
+        pos_unc = det_infos['uncertainties'][:3]
+        yaw_unc = det_infos['uncertainties'][6]
+        vel_unc = det_infos['uncertainties'][7:]
+        box_unc = det_infos['uncertainties'][3:6]
+
+        unc_vector = []
+        if 'center' in uncertainties:
+            unc_vector.extend(pos_unc)
+        else:
+            unc_vector.extend([0, 0, 0])
+        if 'box' in uncertainties:
+            unc_vector.extend(box_unc)
+        else:
+            unc_vector.extend([0, 0, 0])
+        if 'velocity' in uncertainties and self.has_velo:
+            unc_vector.extend(vel_unc)
+        elif self.has_velo:
+            unc_vector.extend([0, 0])
+        if 'yaw' in uncertainties: 
+            unc_vector.extend([yaw_unc])
+        else:
+            unc_vector.extend([0])
+        
+        # replace all 0s with the standard value of this model
+        unc_vector = [1 if i == 0 else i for i in unc_vector]
+
+        return np.mat(np.diag(unc_vector))
     
     def getTransitionF(self, state: np.mat) -> np.mat:
         """obtain matrix in the motion_module/script/BIC_kinect_jacobian.ipynb

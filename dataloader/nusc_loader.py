@@ -55,14 +55,21 @@ class NuScenesloader:
         # all categories are blended together and sorted by detection score
         list_dets, np_dets = dictdet2array(ori_dets, 'translation', 'size', 'velocity', 'rotation',
                                            'detection_score', 'detection_name')
-
+        
         # Score Filter based on category-specific thresholds
         np_dets = np.array([det for det in list_dets if det[-2] > self.SF_thre[det[-1]]])
+        
+        # Uncertainties: [x_pos, y_pos, z_pos, w_bbox, l_bbox, h_bbox, yaw, vel_x, vel_y]
+        if self.config['basic']['has_uncertainties']:
+            list_uncs, np_uncs = dictdet2array(ori_dets, 'uncertainty', 'detection_score', 'detection_name')
+            np_uncs = np.array([det for det in list_uncs if det[-2] > self.SF_thre[det[-1]]])
 
         # NMS, "blend" ref to blend all categories together during NMS
         if len(np_dets) != 0:
             box_dets, np_dets_bottom_corners = arraydet2box(np_dets)
             assert len(np_dets) == len(box_dets) == len(np_dets_bottom_corners)
+            if self.config['basic']['has_uncertainties']:
+                len(np_dets_bottom_corners) == len(np_uncs)
             tmp_infos = {'np_dets': np_dets, 'np_dets_bottom_corners': np_dets_bottom_corners}
             keep = globals()[self.NMS_type](box_infos=tmp_infos, metrics=self.NMS_metric, thre=self.NMS_thre)
             keep_num = len(keep)
@@ -84,6 +91,8 @@ class NuScenesloader:
             'seq_id': self.seq_id,
             'frame_id': self.frame_id,
             'has_velo': self.config['basic']['has_velo'],
+            'has_uncertainties': self.config['basic']['has_uncertainties'],
+            'uncertainties': np_uncs[keep, :-2] if self.config['basic']['has_uncertainties'] else np.zeros((0, 0)), 
             'np_dets': np_dets[keep] if keep_num != 0 else np.zeros(0),
             'np_dets_bottom_corners': np_dets_bottom_corners[keep] if keep_num != 0 else np.zeros(0),
             'box_dets': box_dets[keep] if keep_num != 0 else np.zeros(0),

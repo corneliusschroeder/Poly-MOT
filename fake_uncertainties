@@ -1,0 +1,31 @@
+import json
+
+# Path to the JSON file
+json_file_path = 'data/detector/val/val_centerpoint.json'
+
+# Load and extract data from the JSON file
+with open(json_file_path, 'r') as file:
+    data = json.load(file)
+
+
+uncertainty_map = {'bicycle': 1,
+                   'bus': 1,
+                   'car': 1,
+                   'motorcycle': 1,
+                   'pedestrian': 1,
+                   'trailer': 0.001,
+                   'truck': 1}
+                 
+
+
+for token, detections in data['results'].items():
+    for detection in detections:
+        detection_name = detection['detection_name']
+        uncertainty_value = uncertainty_map.get(detection_name, 1000)
+        detection['uncertainty'] = [uncertainty_value*1000000] * 9
+
+
+# Save the modified data back to a JSON file
+output_file_path = 'data/detector/val/val_centerpoint_fake_1000000_uncertainties.json'
+with open(output_file_path, 'w') as file:
+    json.dump(data, file)

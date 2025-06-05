@@ -1,1 +1,0 @@
-sudo mount -t cifs //nas.ads.mwn.de/tumw/ftm/Projekte/perception_datasets/nuscenes/raw/ /home/ga67jup/UA_OD/Poly-MOT-2/dataset/nuscenes -o username=ga67jup,password=ZSPIOA8
