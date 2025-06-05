@@ -79,6 +79,7 @@ class Tracker:
             'np_track_res': dict_track_res['np_track_res'],
             'box_track_res': dict_track_res['box_track_res'],
             'bm_track_res': dict_track_res['bm_track_res'],
+            'associated_dets': dict_track_res['associated_dets'],
         })
         
         # whether to use post-predict to reduce FP prediction
@@ -178,6 +179,7 @@ class Tracker:
         assert len(tracking_ids) == self.det_infos['det_num']
         np_res, box_res, bm_res, cov_res = [], [], [], []
         new_tras, ten_tras, act_tras = {}, {}, {}
+        dets_matched = {}
         
         # iterative detections, use measurement(dets) to correct tracklet
         for det_idx, tra_id in enumerate(tracking_ids):
@@ -187,7 +189,9 @@ class Tracker:
                 'uncertainties': data_info['uncertainties'][det_idx] if data_info['has_uncertainties'] else np.zeros((0, 0)),
                 'has_velo': data_info['has_velo'],
                 'has_uncertainties': data_info['has_uncertainties'],
-                'seq_id': data_info['seq_id']
+                'seq_id': data_info['seq_id'],
+                'frame_id': data_info['frame_id'],
+                'tra_id': tra_id
             }
             if self.is_debug: assert tra_id not in self.dead_tras
             if tra_id in self.valid_tras:
@@ -201,6 +205,8 @@ class Tracker:
                                  track_id=tra_id,
                                  det_infos=dict_det)
                 new_tras[tra_id] = tra
+
+            dets_matched[tra_id] = dict_det
         
         # merge all tras, include exist trajectories and newly generated trajectory
         tmp_merge_tras = {**self.valid_tras, **new_tras}
@@ -239,6 +245,7 @@ class Tracker:
             'np_track_res': np_res,
             'box_track_res': box_res,
             'bm_track_res': bm_res,
+            'associated_dets': dets_matched
         }
         return dict_track_res   
 
