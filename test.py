@@ -43,14 +43,14 @@ def main(result_path, token, process, nusc_loader):
             "use_external": False,
         }
     }
+    matched_dets = {}
+
     # tracking and output file
     nusc_tracker = Tracker(config=nusc_loader.config)
     for frame_data in tqdm(nusc_loader, desc='Running', total=len(nusc_loader) // process, position=token):
         if process > 1 and frame_data['seq_id'] % process != token:
             continue
         sample_token = frame_data['sample_token']
-        print('xxxxxxxxxxxxxxxxxxxxxxxxx')
-        print('Frame Data\n',  frame_data)
 
         # track each sequence
         nusc_tracker.tracking(frame_data)
@@ -64,8 +64,10 @@ def main(result_path, token, process, nusc_loader):
         """
         # output process
         sample_results = []
+        associated_dets = []
+
         if 'no_val_track_result' not in frame_data:
-            print('\nTracked Objects:')
+            
             for predict_box in frame_data['box_track_res']:
                 
                 box_result = {
@@ -77,19 +79,34 @@ def main(result_path, token, process, nusc_loader):
                                  float(predict_box.orientation[2]), float(predict_box.orientation[3])],
                     "velocity": [float(predict_box.velocity[0]), float(predict_box.velocity[1])],
                     "covariance": predict_box.covariance.tolist(), # Kalman filter uncertainty estimate
-                    "detection_uncertainty": predict_box.detection_uncertainty,
                     "tracking_id": str(predict_box.tracking_id),
                     "tracking_name": predict_box.name,
                     "tracking_score": predict_box.score,
                 }
                 sample_results.append(box_result.copy())
-                print(box_result)
+                
+                if predict_box.tracking_id in frame_data['associated_dets']:
+                    det_data = frame_data['associated_dets'][predict_box.tracking_id]
+                    # np.array, [det_num, 14](x, y, z, w, l, h, vx, vy, ry(orientation, 1x4), det_score, class_label)
+                    det = {
+                        "sample_token": sample_token,
+                        "translation": list(det_data['np_array'][:3]),
+                        "size": list(det_data['np_array'][3:6]),
+                        "rotation":  list(det_data['np_array'][8:12]),
+                        "velocity": list(det_data['np_array'][6:8]),
+                        "class_label":  det_data['np_array'][13],
+                        "detection_score": det_data['np_array'][12],
+                        "tracking_id": str(predict_box.tracking_id),
+                    }
+                    associated_dets.append(det.copy())
 
         # add to the output file
         if sample_token in result["results"]:
             result["results"][sample_token] = result["results"][sample_token] + sample_results
+            matched_dets[sample_token] = matched_dets[sample_token] + associated_dets
         else:
             result["results"][sample_token] = sample_results
+            matched_dets[sample_token] = associated_dets
 
         
 
@@ -110,7 +127,8 @@ def main(result_path, token, process, nusc_loader):
     if process > 1:
         json.dump(result, open(result_path + str(token) + ".json", "w"))
     else:
-        json.dump(result, open(result_path + "/results.json", "w"))
+        json.dump(result, open(result_path + "/tracking_results.json", "w"))
+        json.dump(matched_dets, open(result_path + "/matched_dets.json", "w"))
 
 
 # def eval(result_path, eval_path, nusc_path):

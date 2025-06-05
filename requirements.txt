@@ -8,4 +8,5 @@ pyquaternion
 line_profiler
 lap
 pyyaml
-
+tqdm
+opencv-python

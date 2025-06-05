@@ -91,8 +91,6 @@ class KalmanFilter:
                 'inner_state': np.array, for state estimation. 
                                varies by motion model
                 'cov_state': np.diag(self.P)
-                'det_unc': np.array passing through the detection uncertainties.
-                                [x_pos, y_pos, z_pos, w_bbox, l_bbox, h_bbox, yaw, vel_x, vel_y]
             }
             mode (str, optional): stage of adding objects, 'update', 'predict'. Defaults to None.
         """
@@ -100,7 +98,7 @@ class KalmanFilter:
         if mode is None: return
         
         # data format conversion
-        inner_info, exter_info, cov_info, det_unc = tra_info['inner_state'], tra_info['exter_state'], tra_info['cov_state'], tra_info['det_unc']
+        inner_info, exter_info, cov_info = tra_info['inner_state'], tra_info['exter_state'], tra_info['cov_state']
         extra_info = np.array([self.tracking_id, self.seq_id, timestamp])
         box_info, bm_info = arraydet2box(exter_info, np.array([self.tracking_id]))
 
@@ -110,7 +108,6 @@ class KalmanFilter:
             frame_object.update_bms, frame_object.update_box = bm_info[0], box_info[0]
             frame_object.update_state, frame_object.update_infos = inner_info, np.append(exter_info, extra_info)
             frame_object.update_box.covariance = cov_info
-            frame_object.update_box.detection_uncertainty = det_unc
         elif mode == 'predict':
             frame_object = FrameObject()
             frame_object.predict_bms, frame_object.predict_box = bm_info[0], box_info[0]
@@ -173,8 +170,7 @@ class LinearKalmanFilter(KalmanFilter):
         tra_infos = {
             'inner_state': self.state,
             'exter_state': det_infos['np_array'],
-            'cov_state': np.diag(self.P),
-            'det_unc': det_infos['uncertainties']
+            'cov_state': np.diag(self.P)
         }
         self.addFrameObject(self.timestamp, tra_infos, 'predict')
         self.addFrameObject(self.timestamp, tra_infos, 'update')
@@ -218,8 +214,7 @@ class LinearKalmanFilter(KalmanFilter):
         tra_infos = {
             'inner_state': self.state,
             'exter_state': output_info,
-            'cov_state': np.diag(self.P),
-            'det_unc': det['uncertainties']
+            'cov_state': np.diag(self.P)
         }
         self.addFrameObject(timestamp, tra_infos, 'update')
         
@@ -250,8 +245,7 @@ class ExtendKalmanFilter(KalmanFilter):
         tra_infos = {
             'inner_state': self.state,
             'exter_state': det_infos['np_array'],
-            'cov_state': np.diag(self.P),
-            'det_unc': det_infos['uncertainties']
+            'cov_state': np.diag(self.P)
         }
         self.addFrameObject(self.timestamp, tra_infos, 'predict')
         self.addFrameObject(self.timestamp, tra_infos, 'update')
@@ -313,8 +307,7 @@ class ExtendKalmanFilter(KalmanFilter):
         tra_infos = {
             'inner_state': self.state,
             'exter_state': output_info,
-            'cov_state': np.diag(self.P),
-            'det_unc': det['uncertainties']
+            'cov_state': np.diag(self.P)
         }
         self.addFrameObject(timestamp, tra_infos, 'update')
         
