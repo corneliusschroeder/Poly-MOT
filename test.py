@@ -1,4 +1,5 @@
-import yaml, argparse, time, os, json, multiprocessing
+import yaml, argparse, time, os, sys, json, multiprocessing
+sys.path.append('/workspaces/Poly-MOT/nuscenes_devkit_uncertainty/python-sdk')
 from dataloader.nusc_loader import NuScenesloader
 from tracking.nusc_tracker import Tracker
 from tqdm import tqdm
@@ -88,12 +89,16 @@ def main(result_path, token, process, nusc_loader):
                 if predict_box.tracking_id in frame_data['associated_dets']:
                     det_data = frame_data['associated_dets'][predict_box.tracking_id]
                     # np.array, [det_num, 14](x, y, z, w, l, h, vx, vy, ry(orientation, 1x4), det_score, class_label)
+                    # Uncertainties: [x_pos, y_pos, z_pos, w_bbox, l_bbox, h_bbox, yaw, vel_x, vel_y]
                     det = {
                         "sample_token": sample_token,
                         "translation": list(det_data['np_array'][:3]),
                         "size": list(det_data['np_array'][3:6]),
                         "rotation":  list(det_data['np_array'][8:12]),
                         "velocity": list(det_data['np_array'][6:8]),
+                        "trans_var": list(det_data['uncertainties'][0:3]),
+                        "rot_var": det_data['uncertainties'][-3],
+                        "vel_var": list(det_data['uncertainties'][-2:]),
                         "class_label":  det_data['np_array'][13],
                         "detection_score": det_data['np_array'][12],
                         "tracking_id": str(predict_box.tracking_id),
