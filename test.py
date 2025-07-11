@@ -195,4 +195,4 @@ if __name__ == "__main__":
         result_path = os.path.join(args.result_path, 'results.json')
     else:
         result_path = args.result_path
-    # eval(result_path, args.eval_path, args.nusc_path, args.eval_split)
+    eval(result_path, args.eval_path, args.nusc_path, args.eval_split)

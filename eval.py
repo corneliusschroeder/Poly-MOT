@@ -1,4 +1,4 @@
-import argparse, time, os
+import argparse, time, os, sys
 
 # Skipping the following warning from printing
 # FutureWarning: The frame.append method is deprecated and will be removed from pandas in a future version. Use pandas.concat instead.
@@ -18,6 +18,7 @@ parser.add_argument('--eval_split', type=str, choices=['train', 'val'], default=
 
 def eval(result_path, eval_path, nusc_path, eval_split):
     warnings.filterwarnings("ignore", category=FutureWarning, module="pandas")
+    sys.path.append('/workspaces/Poly-MOT/nuscenes_devkit_uncertainty/python-sdk')
     from nuscenes.eval.tracking.evaluate import TrackingEval
     from nuscenes.eval.common.config import config_factory as track_configs
     cfg = track_configs("tracking_nips_2019")
@@ -41,4 +42,6 @@ if __name__ == "__main__":
         result_path = os.path.join(args.result_path, 'results.json')
     else:
         result_path = args.result_path
-    eval(result_path, args.eval_path, args.nusc_path, args.eval_split)
+    # eval(result_path, args.eval_path, args.nusc_path, args.eval_split)
+
+    eval('/workspaces/Poly-MOT/jittering_module/data/tracking_result_PRC_z_test_XY.json', '/workspaces/Poly-MOT/eval_result_jittering', '/workspaces/Poly-MOT/dataset/nuscenes', 'val')
