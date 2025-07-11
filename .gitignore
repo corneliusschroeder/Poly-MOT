@@ -1,4 +1,5 @@
 *.json
+*.csv
 result*/
 eval_result*/
 __pycache__
