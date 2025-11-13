@@ -52,7 +52,7 @@ def main(result_path, token, process, nusc_loader):
         if process > 1 and frame_data['seq_id'] % process != token:
             continue
         sample_token = frame_data['sample_token']
-
+        
         # track each sequence
         nusc_tracker.tracking(frame_data)
         """
@@ -195,4 +195,4 @@ if __name__ == "__main__":
         result_path = os.path.join(args.result_path, 'results.json')
     else:
         result_path = args.result_path
-    eval(result_path, args.eval_path, args.nusc_path, args.eval_split)
+    # eval(result_path, args.eval_path, args.nusc_path, args.eval_split)

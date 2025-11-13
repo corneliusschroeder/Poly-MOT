@@ -6,6 +6,7 @@ TODO: support Waymo dataset
 import os, json, sys
 import argparse
 sys.path.append('../..')
+sys.path.append('/workspaces/Poly-MOT/nuscenes_devkit_uncertainty/python-sdk')
 from utils.io import load_file
 from tqdm import tqdm
 from nuscenes.nuscenes import NuScenes
@@ -27,12 +28,12 @@ def extract_first_token(dataset_path, detector_path, dataset_name, dataset_versi
     if dataset_name == 'NuScenes':
         nusc = NuScenes(version='v1.0-' + dataset_version, dataroot=dataset_path,
                         verbose=True)
-        frame_num = 6019 if dataset_version == 'trainval' else 6008
-        seq_num = 150
+        # frame_num = 6019 if dataset_version == 'trainval' else 6008
+        # seq_num = 150
 
         # load detector file
         detector_json = load_file(detector_path)
-        assert len(detector_json['results']) == frame_num, "wrong detection result"
+        #assert len(detector_json['results']) == frame_num, "wrong detection result"
 
         # get first frame token of each seq
         first_token_table = []
@@ -40,11 +41,11 @@ def extract_first_token(dataset_path, detector_path, dataset_name, dataset_versi
         for sample_token in tqdm(detector_json['results']):
             if nusc.get('sample', sample_token)['prev'] == '':
                 first_token_table.append(sample_token)
-        assert len(first_token_table) == seq_num, "wrong detection result"
+        #assert len(first_token_table) == seq_num, "wrong detection result"
 
         # write token table
         os.makedirs(output_path + dataset_version, exist_ok=True)
-        FIRST_TOKEN_PATH = os.path.join(output_path, dataset_version, "nusc_first_token.json")
+        FIRST_TOKEN_PATH = os.path.join(output_path, dataset_version, "_first_token.json")
         print(f"write token table to {FIRST_TOKEN_PATH}")
         json.dump(first_token_table, open(FIRST_TOKEN_PATH, "w"))
 

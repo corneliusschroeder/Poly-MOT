@@ -488,6 +488,7 @@ class CTRA(ABC_MODEL):
         """
         # uncertainty measurement vector: [x_pos, y_pos, z_pos, w_bbox, l_bbox, h_bbox, yaw, vel_x, vel_y]
         # -> Measure vector: [x, y, z, w, l, h, (vx, vy, optional), ry]
+        #print(det_infos)
         pos_unc = det_infos['uncertainties'][:3]
         yaw_unc = det_infos['uncertainties'][6]
         vel_unc = det_infos['uncertainties'][7:]

@@ -193,6 +193,7 @@ class Tracker:
                 'frame_id': data_info['frame_id'],
                 'tra_id': tra_id
             }
+            
             if self.is_debug: assert tra_id not in self.dead_tras
             if tra_id in self.valid_tras:
                 # update exist trajectory

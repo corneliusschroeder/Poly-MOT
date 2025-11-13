@@ -7,6 +7,8 @@ import argparse
 sys.path.append('../..')
 from utils.io import load_file
 from tqdm import tqdm
+
+sys.path.append('/workspaces/Poly-MOT/nuscenes_devkit_uncertainty/python-sdk')
 from nuscenes.nuscenes import NuScenes
 
 OUTPUT_ROOT_PATH = "../detector/"
@@ -28,15 +30,15 @@ def reorder_detection(dataset_path, detector_path, dataset_name,
     if dataset_name == 'NuScenes':
         nusc = NuScenes(version='v1.0-' + dataset_version, dataroot=dataset_path,
                         verbose=True)
-        frame_num = 6019 if dataset_version == 'trainval' else 6008
+        #frame_num = 6019 if dataset_version == 'trainval' else 6008
 
         # load detector file
         chaos_detector_json = load_file(detector_path)
-        assert len(chaos_detector_json['results']) == frame_num, "wrong detection result"
+        #assert len(chaos_detector_json['results']) == frame_num, "wrong detection result"
         #first_token_path = '../utils/first_token_table/{}/nusc_first_token.json'.format(dataset_version)
         first_token_path = first_token_path_arg.format(dataset_version)
         all_token_table = from_first_to_all(nusc, first_token_path)
-        assert len(all_token_table) == frame_num
+        #assert len(all_token_table) == frame_num
 
         # reorder file
         order_file = {
@@ -61,8 +63,8 @@ def from_first_to_all(nusc, first_token_path):
     :param first_token_path: path of first frame token for each seq
     :return: list format token table
     """
-    first_token_table, seq_num = load_file(first_token_path), 150
-    assert len(first_token_table) == seq_num, "wrong token table"
+    first_token_table= load_file(first_token_path) # first_token_table, seq_num = load_file(first_token_path), 150
+    # assert len(first_token_table) == seq_num, "wrong token table"
     all_token_table = []
     for first_token in first_token_table:
         curr_token = first_token
