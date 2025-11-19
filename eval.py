@@ -1,4 +1,5 @@
-import argparse, time, os
+import argparse, time, os, sys
+sys.path.append('/workspaces/Poly-MOT/nuscenes_devkit_uncertainty/python-sdk')
 
 # Skipping the following warning from printing
 # FutureWarning: The frame.append method is deprecated and will be removed from pandas in a future version. Use pandas.concat instead.
@@ -38,7 +39,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     os.makedirs(args.eval_path, exist_ok=True)
     if os.path.isdir(args.result_path):
-        result_path = os.path.join(args.result_path, 'results.json')
+        result_path = os.path.join(args.result_path, 'tracking_results.json')
     else:
         result_path = args.result_path
     eval(result_path, args.eval_path, args.nusc_path, args.eval_split)
