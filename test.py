@@ -155,36 +155,36 @@ if __name__ == "__main__":
     os.makedirs(args.eval_path, exist_ok=True)
 
     # load and keep config
-    # config = yaml.load(open(args.config_path, 'r'), Loader=yaml.Loader)
-    # valid_cfg = config
-    # json.dump(valid_cfg, open(args.eval_path + "/config.json", "w"))
-    # print('writing config in folder: ' + os.path.abspath(args.eval_path))
+    config = yaml.load(open(args.config_path, 'r'), Loader=yaml.Loader)
+    valid_cfg = config
+    json.dump(valid_cfg, open(args.eval_path + "/config.json", "w"))
+    print('writing config in folder: ' + os.path.abspath(args.eval_path))
 
-    # # load dataloader
-    # nusc_loader = NuScenesloader(args.detection_path,
-    #                              args.first_token_path,
-    #                              config)
-    # print('writing result in folder: ' + os.path.abspath(args.result_path))
+    # load dataloader
+    nusc_loader = NuScenesloader(args.detection_path,
+                                 args.first_token_path,
+                                 config)
+    print('writing result in folder: ' + os.path.abspath(args.result_path))
 
-    # if args.process > 1:
-    #     result_temp_path = args.result_path + '/temp_result'
-    #     os.makedirs(result_temp_path, exist_ok=True)
-    #     pool = multiprocessing.Pool(args.process)
-    #     for token in range(args.process):
-    #         pool.apply_async(main, args=(result_temp_path, token, args.process, nusc_loader))
-    #     pool.close()
-    #     pool.join()
-    #     results = {'results': {}, 'meta': {}}
-    #     # combine the results of each process
-    #     for token in range(args.process):
-    #         result = json.load(open(os.path.join(result_temp_path, str(token) + '.json'), 'r'))
-    #         results["results"].update(result["results"])
-    #         results["meta"].update(result["meta"])
-    #     json.dump(results, open(args.result_path + '/results.json', "w"))
-    #     print('writing result in folder: ' + os.path.abspath(args.result_path))
-    # else:
-    #     main(args.result_path, 0, 1, nusc_loader)
-    #     print('writing result in folder: ' + os.path.abspath(args.result_path))
+    if args.process > 1:
+        result_temp_path = args.result_path + '/temp_result'
+        os.makedirs(result_temp_path, exist_ok=True)
+        pool = multiprocessing.Pool(args.process)
+        for token in range(args.process):
+            pool.apply_async(main, args=(result_temp_path, token, args.process, nusc_loader))
+        pool.close()
+        pool.join()
+        results = {'results': {}, 'meta': {}}
+        # combine the results of each process
+        for token in range(args.process):
+            result = json.load(open(os.path.join(result_temp_path, str(token) + '.json'), 'r'))
+            results["results"].update(result["results"])
+            results["meta"].update(result["meta"])
+        json.dump(results, open(args.result_path + '/results.json', "w"))
+        print('writing result in folder: ' + os.path.abspath(args.result_path))
+    else:
+        main(args.result_path, 0, 1, nusc_loader)
+        print('writing result in folder: ' + os.path.abspath(args.result_path))
 
     # eval result
     if os.path.isdir(args.result_path):
